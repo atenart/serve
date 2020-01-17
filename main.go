@@ -18,6 +18,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/atotto/clipboard"
 	docopt "github.com/docopt/docopt-go"
@@ -47,6 +48,15 @@ func outboundIP() net.IP {
 	defer c.Close()
 
 	return c.LocalAddr().(*net.UDPAddr).IP
+}
+
+func logConnexion(r *http.Request, extra string) {
+	client, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		client = "unknown client"
+	}
+	fmt.Printf("Connexion from %s requesting %s%s\n", client,
+		r.URL.Path, extra)
 }
 
 func main() {
@@ -90,12 +100,7 @@ func main() {
 					count-1)
 			}
 
-			client, _, err := net.SplitHostPort(r.RemoteAddr)
-			if err != nil {
-				client = "unknown client"
-			}
-			fmt.Printf("Connexion from %s requesting %s%s\n", client,
-				r.URL.Path, extra)
+			logConnexion(r, extra)
 
 			if r.URL.Path != fmt.Sprintf("/%s", resource) {
 				http.Error(w, "File not found", 404)
@@ -122,7 +127,17 @@ func main() {
 		})
 	case mode.IsDir():
 		resource = ""
-		handler = http.FileServer(http.Dir(f))
+
+		handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			logConnexion(r, "")
+
+			upath := r.URL.Path
+			if !strings.HasPrefix(upath, "/") {
+				upath = fmt.Sprintf("/%s", upath)
+			}
+
+			http.ServeFile(w, r, fmt.Sprintf("%s%s", f, upath))
+		})
 	default:
 		log.Fatal("Error: unsupported file type.")
 	}
@@ -135,7 +150,7 @@ func main() {
 		log.Print(err)
 	}
 
-	err = http.ListenAndServe(":"+args["--port"].(string), handler)
+	err = http.ListenAndServe(fmt.Sprintf(":%s", args["--port"].(string)), handler)
 	if err != nil {
 		log.Fatal(err)
 	}
