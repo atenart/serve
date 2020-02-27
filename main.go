@@ -36,6 +36,7 @@ Options:
   FILE                                 File or directory to serve [default: .]
   -p <port>, --port <port>             Port number to listen on [default: 8080]
   -c <count>, --count <count>          Limit the number of allowed GET to <count>
+  --version                            Show the version number and exit
   -h --help                            Print this help
 `
 )
