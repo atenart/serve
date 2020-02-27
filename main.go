@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2015-2017 Antoine Tenart
+Copyright (C) 2015-2020 Antoine Tenart
 
 Antoine Tenart <antoine.tenart@ack.tf>
 
@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	version = "serve 0.2"
+	version = "serve 0.3"
 	usage   = `Temporary HTTP server to share local files
 
 Usage:
